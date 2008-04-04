@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>bugzillalinkgrabber@bryan.clark</em:id>
     <em:name>Bugzilla Link Grabber</em:name>
-    <em:version>1.0</em:version>
+    <em:version>1.1</em:version>
     <em:creator>Bryan Clark</em:creator>
     <em:description>Extracts and cleans bugzilla links from Thunderbird Messages</em:description>
     <em:optionsURL>chrome://bugzillalinkgrabber/content/options.xul</em:optionsURL>
