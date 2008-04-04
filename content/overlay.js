@@ -33,19 +33,16 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  * 
  * ***** END LICENSE BLOCK ***** */
+const EXTENSION_ID = "bugzillalinkgrabber@bryan.clark";
 
 var bugzillalinkgrabber = {
   initialized: false,
-  prefs: null,
   strings: null,
 
   onLoad: function() {
     // initialization code
     this.initialized = true;
     this.strings = document.getElementById("bugzillalinkgrabber-strings");
-    this.prefs = Components.classes["@mozilla.org/preferences-service;1"].
-                    getService(Components.interfaces.nsIPrefService).
-                    getBranch("extensions.bugzillalinkgrabber@bryan.clark.");
 
     document.getElementById("messagePaneContext").
              addEventListener("popupshowing", function(e) { bugzillalinkgrabber.showContextMenu(e); }, false);
@@ -72,7 +69,7 @@ var bugzillalinkgrabber = {
     try {
       var bgs = Components.classes["@mozilla.org/preferences-service;1"].
                            getService(Components.interfaces.nsIPrefService).
-                           getBranch("extensions.bugzillalinkgrabber@bryan.clark.bugzillas.");
+                           getBranch("extensions."+EXTENSION_ID+".bugzillas.");
 
       var children = bgs.getChildList("", {});
 
@@ -88,7 +85,8 @@ var bugzillalinkgrabber = {
     var number = bugMatch.match(/(\d+)/i)[1];
     var cDoc = document.getElementById('messagepane').contentDocument;
     var anchor = cDoc.createElementNS("http://www.w3.org/1999/xhtml", "html:a");
-        anchor.setAttribute("href", this.prefs.getCharPref("default.url").replace("%s", number));
+        // Application.extensions.get(EXTENSION_ID).prefs.get("default.url").replace("%s", number)
+        anchor.setAttribute("href", Application.prefs.get("extensions."+EXTENSION_ID+".default.url").value.replace("%s", number));
         anchor.setAttribute("class", "bugzilla-link");
         anchor.setAttribute("target", "_content");
         anchor.setAttribute("title", "(we'll be getting the title soon!)");
