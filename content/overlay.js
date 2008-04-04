@@ -85,7 +85,7 @@ var bugzillalinkgrabber = {
     var number = bugMatch.match(/(\d+)/i)[1];
     var cDoc = document.getElementById('messagepane').contentDocument;
     var anchor = cDoc.createElementNS("http://www.w3.org/1999/xhtml", "html:a");
-        // Application.extensions.get(EXTENSION_ID).prefs.get("default.url").replace("%s", number)
+        // Application.extensions.get(EXTENSION_ID).prefs.get("default.url").value.replace("%s", number)
         anchor.setAttribute("href", Application.prefs.get("extensions."+EXTENSION_ID+".default.url").value.replace("%s", number));
         anchor.setAttribute("class", "bugzilla-link");
         anchor.setAttribute("target", "_content");
