@@ -35,9 +35,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 var blgPrefs = {
-  prefs: Components.classes["@mozilla.org/preferences-service;1"].
-                    getService(Components.interfaces.nsIPrefService).
-                    getBranch("extensions.bugzillalinkgrabber@bryan.clark."),
 
   bugzillas : function() {
     var bgs = Components.classes["@mozilla.org/preferences-service;1"].

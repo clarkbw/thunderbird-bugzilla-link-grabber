@@ -4,4 +4,4 @@
 <!ENTITY bugzillalinkgrabberPrefPane.stringpref.label "String Pref">
 <!ENTITY bugzillalinkgrabber.label "Your localized menuitem">
 <!ENTITY bugzillalinkgrabberContext.label "Open Bug">
-<!ENTITY bugzillalinkgrabberContext.accesskey "Y">
+

@@ -46,7 +46,6 @@
 
   <popup id="messagePaneContext">
     <menuitem id="context-bugzillalinkgrabber" label="&bugzillalinkgrabberContext.label;"
-              accesskey="&bugzillalinkgrabberContext.accesskey;"
               oncommand="bugzillalinkgrabber.onMenuItemCommand(gContextMenu.linkURL)"/>
   </popup>
 </overlay>

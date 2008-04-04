@@ -52,17 +52,20 @@ var bugzillalinkgrabber = {
 
   showContextMenu: function(event) {
     if (gContextMenu.onLink && !gContextMenu.onMailtoLink) {
+      var number = gContextMenu.linkURL.match(/(\d+)/i)[1];
       document.getElementById("context-bugzillalinkgrabber").hidden = false;
-      document.getElementById("context-bugzillalinkgrabber").setAttribute("label", this.strings.getString("label").replace("%s", gContextMenu.linkURL));
+      document.getElementById("context-bugzillalinkgrabber").setAttribute("label", this.strings.getString("label").replace("%s", number));
     }
     else { document.getElementById("context-bugzillalinkgrabber").hidden = true; }
   },
 
   onMenuItemCommand: function(linkURL) {
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, this.strings.getString("helloMessageTitle"),
-                                this.strings.getString("helloMessage"));
+    try {
+      messenger.launchExternalURL(linkURL);
+    }
+    catch (e) {
+      Application.console.log(e);
+    }
   },
 
   getBugzillas : function() {
