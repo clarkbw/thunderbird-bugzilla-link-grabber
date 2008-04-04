@@ -1,0 +1,4 @@
+content	bugzillalinkgrabber	content/
+locale	bugzillalinkgrabber	en-US	locale/en-US/
+skin	bugzillalinkgrabber	classic/1.0	skin/
+overlay	chrome://messenger/content/messenger.xul	chrome://bugzillalinkgrabber/content/thunderbirdOverlay.xul
