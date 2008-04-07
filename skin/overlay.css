@@ -3,3 +3,9 @@
 {
   color: red ! important;
 }
+div.bugzilla-bug {
+  font-size: small;
+  color: #333333;
+  border: 1px solid #999999;
+  margin: 1em 0em;
+}

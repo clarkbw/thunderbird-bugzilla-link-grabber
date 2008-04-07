@@ -39,6 +39,7 @@
 <!DOCTYPE overlay SYSTEM "chrome://bugzillalinkgrabber/locale/bugzillalinkgrabber.dtd">
 <overlay id="bugzillalinkgrabber-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script src="db.js"/>
   <script src="overlay.js"/>
   <stringbundleset id="stringbundleset">
     <stringbundle id="bugzillalinkgrabber-strings" src="chrome://bugzillalinkgrabber/locale/bugzillalinkgrabber.properties"/>

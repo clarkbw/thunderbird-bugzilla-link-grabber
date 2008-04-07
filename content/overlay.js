@@ -86,10 +86,12 @@ var bugzillalinkgrabber = {
   },
   createBugAnchor : function(bugMatch) {
     var number = bugMatch.match(/(\d+)/i)[1];
+    var url = Application.prefs.get("extensions."+EXTENSION_ID+".default.url").value.replace("%s", number);
+
     var cDoc = document.getElementById('messagepane').contentDocument;
     var anchor = cDoc.createElementNS("http://www.w3.org/1999/xhtml", "html:a");
         // Application.extensions.get(EXTENSION_ID).prefs.get("default.url").value.replace("%s", number)
-        anchor.setAttribute("href", Application.prefs.get("extensions."+EXTENSION_ID+".default.url").value.replace("%s", number));
+        anchor.setAttribute("href", url);
         anchor.setAttribute("class", "bugzilla-link");
         anchor.setAttribute("target", "_content");
         anchor.setAttribute("title", "(we'll be getting the title soon!)");
@@ -98,6 +100,8 @@ var bugzillalinkgrabber = {
   },
   handleEvent : function (event) {
     // FIXME: for now we can just assume the message has rendered in the message pane
+
+    var msgBugs = {};
 
     try {
       // Reach in and grab the Nodes we need
@@ -118,6 +122,10 @@ var bugzillalinkgrabber = {
               var t = nssi.splitText(nssi.textContent.indexOf(bugMatches[index]));
               t.replaceData(t.textContent.indexOf(bugMatches[index]),bugMatches[index].length, "");
               nssi.parentNode.insertBefore(this.createBugAnchor(bugMatches[index]),t);
+
+              var number = bugMatches[index].match(/(\d+)/i)[1];
+              var url = Application.prefs.get("extensions."+EXTENSION_ID+".default.url").value.replace("%s", number);
+              msgBugs[number] = url;
             }
           }
         }
@@ -131,10 +139,51 @@ var bugzillalinkgrabber = {
       // FIXME: with a lot of bugzillas included this could get slow.
       for each (var bugzilla in bugzillas) {
         if (linkNodes[index].href.indexOf(bugzilla.replace("%s", "")) == 0) {
-          linkNodes[index].replaceChild(cDoc.createTextNode("bug " + linkNodes[index].href.substr(bugzilla.replace("%s", "").length, linkNodes[index].href.length)),linkNodes[index].firstChild);
+          var number = linkNodes[index].href.substr(bugzilla.replace("%s", "").length, linkNodes[index].href.length);
+          linkNodes[index].replaceChild(cDoc.createTextNode("bug " + number),linkNodes[index].firstChild);
+          msgBugs[number] = linkNodes[index].href;
         }
       }
     }
-   },
+
+    for (var bug in msgBugs) {
+      this.addBugSummary(bugzillaLinkSQL.bug(bug,msgBugs[bug]), cDoc);
+    }
+
+  },
+  // Grabs the bug from the DB if it exists or it downloads the info
+  addBugSummary : function(bug, doc) {
+    if (!doc) return;
+    var msgHTMLDoc = doc.childNodes.item(0);
+    if (!msgHTMLDoc) return;
+
+    try {
+    var bDiv = doc.createElement("div");
+        // FIXME: how do we use the css overlay style instead of inline?
+        bDiv.setAttribute("class", "bugzilla-bug");
+        bDiv.style.fontSize = "small";
+        bDiv.style.color = "#333333"
+        bDiv.style.margin = "1em 0em";
+        bDiv.style.border = "1px solid #999999";
+    var iDiv = doc.createElement("div");
+    var bA = doc.createElement("a");
+        bA.setAttribute("href", bug["url"]);
+        bA.setAttribute("target", "_content");
+        bA.appendChild(doc.createTextNode("bug " + bug["id"]));
+      iDiv.appendChild(bA);
+      iDiv.appendChild(doc.createTextNode(" | " + bug["bug_status"] + " | " + bug["comment_count"] + " comments"));
+    bDiv.appendChild(iDiv);
+      var tDiv = doc.createElement("div");
+      tDiv.style.color = "#111111";
+      tDiv.style.fontWeight = "bold";
+      tDiv.appendChild(doc.createTextNode(""+bug["title"]));
+    bDiv.appendChild(tDiv);
+      var cBlock = doc.createElement("blockquote");
+      cBlock.appendChild(doc.createTextNode(bug["last_comment"]));
+    bDiv.appendChild(cBlock);
+    msgHTMLDoc.appendChild(bDiv);
+    } catch(e) { Application.console.log(e); }
+
+  },
 };
 window.addEventListener("load", function(e) { bugzillalinkgrabber.onLoad(e); }, false);
