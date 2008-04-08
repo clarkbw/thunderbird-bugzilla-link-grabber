@@ -103,7 +103,7 @@ var bugzillaLinkSQL = {
         }
       };
       req.onload = loaded;
-      req.open("GET",url + "&ctype=xml", false);
+      req.open("GET",url + "&ctype=xml&field=short_desc&field=bug_status&field=long_desc", false);
       req.send(null);
     }
 
