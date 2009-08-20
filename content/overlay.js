@@ -36,18 +36,20 @@
 const EXTENSION_ID = "bugzillalinkgrabber@bryan.clark";
 
 var bugzillalinkgrabber = {
-  initialized: false,
   strings: null,
 
   onLoad: function() {
     // initialization code
-    this.initialized = true;
     this.strings = document.getElementById("bugzillalinkgrabber-strings");
 
-    document.getElementById("messagePaneContext").
-             addEventListener("popupshowing", function(e) { bugzillalinkgrabber.showContextMenu(e); }, false);
+    var cx = document.getElementById('threadPaneContext') ||
+             document.getElementById('mailContext');
+    if (cx)
+      cx.addEventListener("popupshowing", function(e) { bugzillalinkgrabber.showContextMenu(e); }, false);
 
-    Application.events.addListener("messageShow", bugzillalinkgrabber);
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .addObserver(this, "MsgMsgDisplayed", false);
   },
 
   showContextMenu: function(event) {
@@ -89,23 +91,49 @@ var bugzillalinkgrabber = {
     var cDoc = document.getElementById('messagepane').contentDocument;
     var anchor = cDoc.createElementNS("http://www.w3.org/1999/xhtml", "html:a");
         // Application.extensions.get(EXTENSION_ID).prefs.get("default.url").value.replace("%s", number)
-        anchor.setAttribute("href", Application.prefs.get("extensions."+EXTENSION_ID+".default.url").value.replace("%s", number));
+        anchor.setAttribute("href", Application.extensions.get(EXTENSION_ID).prefs.get("default.url").value.replace("%s", number));
         anchor.setAttribute("class", "bugzilla-link");
         anchor.setAttribute("target", "_content");
         anchor.setAttribute("title", "(we'll be getting the title soon!)");
         anchor.appendChild(cDoc.createTextNode(bugMatch));
     return anchor;
   },
-  handleEvent : function (event) {
-    // FIXME: for now we can just assume the message has rendered in the message pane
+  createBugCommentAnchor : function(number, comment) {
+    var cDoc = document.getElementById('messagepane').contentDocument;
+    var anchor = cDoc.createElementNS("http://www.w3.org/1999/xhtml", "html:a");
+        anchor.setAttribute("href", Application.extensions.get(EXTENSION_ID).prefs.get("default.url").value.replace("%s", number) + "#c" + comment);
+        anchor.setAttribute("class", "bugzilla-link");
+        anchor.setAttribute("target", "_content");
+        anchor.setAttribute("title", "(we'll be getting the title soon!)");
+        anchor.appendChild(cDoc.createTextNode("Comment #" + comment));
+    return anchor;
+  },
+
+  observe: function(aSubject, aTopic, aData) {
+    // FIXME: for now we just assume the message has rendered in the message pane
+    var bug = "";
+    var body = "";
+    var cDoc = null;
 
     try {
-      // Reach in and grab the Nodes we need
-      var cDoc = document.getElementById('messagepane').contentDocument;
+      cDoc = document.getElementById('messagepane').contentDocument;
       var msgHTMLDoc = cDoc.childNodes.item(0);
-      var text = msgHTMLDoc.childNodes.item(1).textContent;  // this is the BODY node text
+      body = msgHTMLDoc.childNodes.item(1).textContent;  // this is the BODY node text
+    } catch (e) { Application.console.log("couldn't get the body of the message"); return; }
+
+    try {
+      var hdr = messenger.msgHdrFromURI(aData);
+      var subjectx = /\[Bug (\d+)\]/g;
+      var subjectMatches = subjectx.exec(hdr.mime2DecodedSubject)
+      if (subjectMatches) {
+
+        bug = subjectMatches[1];
+      }
+    } catch(e) { Application.console.log(e); }
+
+    try {
       var bugx = /(?:\s|\W|^)(bug\s+#?\d{3,6})/ig;
-      var bugMatches = bugx.exec(text);
+      var bugMatches = bugx.exec(body);
 
       if (bugMatches) {
         // A snapshot is necessary because we are going to mess with the DOM as we traverse
@@ -121,7 +149,23 @@ var bugzillalinkgrabber = {
             }
           }
         }
+      }
+    } catch (e) { Application.console.log(e); }
 
+    try {
+      var commentx = /--- Comment #(\d+) from/g;
+      var commentMatches = commentx.exec(body);
+      if (commentMatches && bug != "") {
+        var nodesSnapshot = cDoc.evaluate("//text()", cDoc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE , null );
+        for ( var i=0 ; i < nodesSnapshot.snapshotLength; i++ ) {
+          var nssi = nodesSnapshot.snapshotItem(i);
+          if ( nssi.textContent.indexOf("Comment #" + commentMatches[1]) != -1 ) {
+            var t = nssi.splitText(nssi.textContent.indexOf("Comment #" + commentMatches[1]));
+            t.replaceData(t.textContent.indexOf("Comment #" + commentMatches[1]),("Comment #" + commentMatches[1]).length, "");
+            nssi.parentNode.insertBefore(this.createBugCommentAnchor(bug, commentMatches[1]),t);
+            break;
+          }
+        }
       }
     } catch (e) { Application.console.log(e); }
 
@@ -138,3 +182,4 @@ var bugzillalinkgrabber = {
    },
 };
 window.addEventListener("load", function(e) { bugzillalinkgrabber.onLoad(e); }, false);
+//Application.events.addListener("load", function(e) { bugzillalinkgrabber.onLoad(e); });

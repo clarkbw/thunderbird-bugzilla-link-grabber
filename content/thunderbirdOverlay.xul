@@ -44,7 +44,7 @@
     <stringbundle id="bugzillalinkgrabber-strings" src="chrome://bugzillalinkgrabber/locale/bugzillalinkgrabber.properties"/>
   </stringbundleset>
 
-  <popup id="messagePaneContext">
+  <popup id="mailContext">
     <menuitem id="context-bugzillalinkgrabber" label="&bugzillalinkgrabberContext.label;"
               oncommand="bugzillalinkgrabber.onMenuItemCommand(gContextMenu.linkURL)"/>
   </popup>
